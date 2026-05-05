@@ -278,8 +278,3 @@ The system generates a final equivalency table with confidence levels:
 7. The student exports the result as a PDF to submit to the academic office.
 
 This approach transforms course transfer planning from a slow, bureaucratic process into an instant, evidence-based, AI-assisted workflow.
-
----
-
-*Documentation written for the Introduction to Artificial Intelligence midterm exam.*  
-*All code in `transfer_planner.html`. Repository contains exactly two files: `transfer_planner.html` and `README.md`.*
