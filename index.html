@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academic Transfer Planner</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #141720;
+    --surface2: #1c2030;
+    --border: #252b3d;
+    --accent: #4f8ef7;
+    --accent2: #7c5cbf;
+    --green: #3ecf8e;
+    --red: #f7706a;
+    --text: #e8eaf0;
+    --muted: #6b7499;
+    --highlight: rgba(79,142,247,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,142,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,142,247,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    margin-bottom: 40px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(79,142,247,0.15), rgba(124,92,191,0.15));
+    border: 1px solid rgba(79,142,247,0.3);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #e8eaf0 30%, #4f8ef7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 300;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(79,142,247,0.2), rgba(124,92,191,0.2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .program-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px;
+    color: var(--accent);
+    background: rgba(79,142,247,0.08);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 8px;
+    padding: 12px 18px;
+    display: inline-block;
+    font-weight: 500;
+  }
+
+  /* Controls row */
+  .controls {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .control-group {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    padding: 12px 16px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7499' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(79,142,247,0.12);
+  }
+
+  .btn {
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(79,142,247,0.25);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 28px rgba(79,142,247,0.35);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  /* Tables */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  thead tr {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  td {
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(37,43,61,0.6);
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.4;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tbody tr { transition: background 0.15s; }
+  tbody tr:hover { background: var(--highlight); }
+
+  .pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-family: 'Sora', sans-serif;
+  }
+
+  .pill-yes {
+    background: rgba(62,207,142,0.12);
+    color: var(--green);
+    border: 1px solid rgba(62,207,142,0.25);
+  }
+
+  .pill-no {
+    background: rgba(247,112,106,0.1);
+    color: var(--red);
+    border: 1px solid rgba(247,112,106,0.2);
+  }
+
+  .na {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .equiv-match {
+    color: var(--green);
+  }
+
+  /* Result card hidden initially */
+  #result-section {
+    display: none;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 20px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .stat-num {
+    font-size: 26px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Animations */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.2s; }
+  .card:nth-child(4) { animation-delay: 0.3s; }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 48px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="badge">Academic Transfer Planner</div>
+    <h1>Course Equivalency<br>Mapping System</h1>
+    <p class="subtitle">Automated transfer analysis for Ilia State University students</p>
+  </header>
+
+  <!-- Current Program -->
+  <div class="card" style="animation-delay:0.05s">
+    <div class="card-header">
+      <div class="card-icon">🎓</div>
+      <span class="card-title">Current Academic Program</span>
+    </div>
+    <div class="program-name">Computer Science (ENGCSC)</div>
+  </div>
+
+  <!-- Course Table -->
+  <div class="card" style="animation-delay:0.1s">
+    <div class="card-header">
+      <div class="card-icon">📋</div>
+      <span class="card-title">Course List</span>
+    </div>
+    <div class="table-wrap">
+      <table id="course-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Course</th>
+            <th>Passed</th>
+          </tr>
+        </thead>
+        <tbody id="course-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Transfer Controls -->
+  <div class="card" style="animation-delay:0.15s">
+    <div class="card-header">
+      <div class="card-icon">🔀</div>
+      <span class="card-title">Transfer Configuration</span>
+    </div>
+    <div class="controls">
+      <div class="control-group">
+        <label for="program-select">Target Program</label>
+        <select id="program-select">
+          <option value="Computer Engineering">Computer Engineering</option>
+          <option value="Civil Engineering">Civil Engineering</option>
+          <option value="Electrical and Electronics Engineering">Electrical and Electronics Engineering</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="runTransfer()">⚡ Transfer</button>
+    </div>
+  </div>
+
+  <!-- Equivalency Result -->
+  <div class="card" id="result-section" style="animation-delay:0s">
+    <div class="card-header">
+      <div class="card-icon">✅</div>
+      <span class="card-title" id="result-title">Equivalency Table</span>
+    </div>
+    <div class="stats-row" id="stats-row"></div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Your Course (Passed)</th>
+            <th>Equivalent in Target Program</th>
+          </tr>
+        </thead>
+        <tbody id="equiv-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>Nikoloz · Computer Science (ENGCSC) · Ilia State University · 2025</footer>
+</div>
+
+<script>
+// ─── Course Data ───────────────────────────────────────────────────────────
+// Courses as they appear in the Ilia State University system (ENGCSC program)
+// passed: true = successfully finished (score > 0, credits gained)
+// passed: false = currently in progress / not yet passed (score 0.00, 0 credits)
+const myCourses = [
+  // Successfully Finished
+  { name: "Academic Techniques (ENG)",                        passed: true  },
+  { name: "Basics of Physics I (including Lab) (ENG)",        passed: true  },
+  { name: "Basics of Physics II (ENG)",                       passed: true  },
+  { name: "Calculus I (ENG)",                                 passed: true  },
+  { name: "Calculus II (ENG)",                                passed: true  },
+  { name: "Calculus III (ENG)",                               passed: true  },
+  { name: "English Language Course C1-1 (ENG)",               passed: true  },
+  { name: "English Language Course C1-2 (ENG)",               passed: true  },
+  { name: "Introduction to Linear Algebra (ENG)",             passed: true  },
+  { name: "Introduction to Modern Thought I (ENG)",           passed: true  },
+  { name: "AWS Cloud Practitioner (ENG)",                     passed: true  },
+  { name: "Algorithms and Data Structures (ENG)",             passed: true  },
+  { name: "Computational and Statistical Methods (ENG)",      passed: true  },
+  { name: "Computer Organization (ENG)",                      passed: true  },
+  { name: "Computer and Data Networks (ENG)",                 passed: true  },
+  { name: "Cyberlaw and Ethics (ENG)",                        passed: true  },
+  { name: "Drones (ENG)",                                     passed: true  },
+  { name: "Elements of Computational Complexity (ENG)",       passed: true  },
+  { name: "Introduction to Cyber Security (ENG)",             passed: true  },
+  { name: "Introduction to Operating Systems (ENG)",          passed: true  },
+  { name: "Introduction to Programming (ENG)",                passed: true  },
+  { name: "Mathematical Foundation of Computing (ENG)",       passed: true  },
+  { name: "Object Oriented Programming (ENG)",                passed: true  },
+  { name: "Principles of Numerical Methods (ENG)",            passed: true  },
+  { name: "Programming Languages (ENG)",                      passed: true  },
+  // Currently in progress / not yet passed
+  { name: "Introduction to Artificial Intelligence (ENG)",    passed: false },
+  { name: "Introduction to machine learning (ENG)",           passed: false },
+  { name: "Distributed and Parallel Computing (ENG)",         passed: false },
+  { name: "Databases and Information Systems (ENG)",          passed: false },
+  { name: "Design Patterns (ENG)",                            passed: false },
+  // 5 additional courses from the program (always "Yes" / passed)
+  { name: "Software Engineering (ENG)",                       passed: true  },
+  { name: "Computer Graphics (ENG)",                          passed: true  },
+  { name: "Mobile Application Development (ENG)",             passed: true  },
+  { name: "Compiler Construction (ENG)",                      passed: true  },
+  { name: "Human-Computer Interaction (ENG)",                 passed: true  },
+];
+
+// ─── Equivalency Maps ─────────────────────────────────────────────────────
+// Keys = course name exactly as above
+// Value = equivalent course name in the target program, or "N/A"
+
+const equivalencies = {
+  "Computer Engineering": {
+    "Academic Techniques (ENG)":                        "Academic Writing and Communication",
+    "Basics of Physics I (including Lab) (ENG)":        "Physics I (with Lab)",
+    "Basics of Physics II (ENG)":                       "Physics II",
+    "Calculus I (ENG)":                                 "Calculus I",
+    "Calculus II (ENG)":                                "Calculus II",
+    "Calculus III (ENG)":                               "Calculus III",
+    "English Language Course C1-1 (ENG)":               "English Language I",
+    "English Language Course C1-2 (ENG)":               "English Language II",
+    "Introduction to Linear Algebra (ENG)":             "Linear Algebra",
+    "Introduction to Modern Thought I (ENG)":           "N/A",
+    "AWS Cloud Practitioner (ENG)":                     "Cloud Computing Fundamentals",
+    "Algorithms and Data Structures (ENG)":             "Data Structures and Algorithms",
+    "Computational and Statistical Methods (ENG)":      "Probability and Statistics",
+    "Computer Organization (ENG)":                      "Computer Architecture and Organization",
+    "Computer and Data Networks (ENG)":                 "Computer Networks",
+    "Cyberlaw and Ethics (ENG)":                        "N/A",
+    "Drones (ENG)":                                     "Embedded Systems and Robotics",
+    "Elements of Computational Complexity (ENG)":       "Theory of Computation",
+    "Introduction to Cyber Security (ENG)":             "Introduction to Cyber Security",
+    "Introduction to Operating Systems (ENG)":          "Operating Systems",
+    "Introduction to Programming (ENG)":                "Introduction to Programming",
+    "Mathematical Foundation of Computing (ENG)":       "Discrete Mathematics",
+    "Object Oriented Programming (ENG)":                "Object-Oriented Programming",
+    "Principles of Numerical Methods (ENG)":            "Numerical Methods",
+    "Programming Languages (ENG)":                      "Programming Languages and Paradigms",
+    "Software Engineering (ENG)":                       "Software Engineering",
+    "Computer Graphics (ENG)":                          "N/A",
+    "Mobile Application Development (ENG)":             "N/A",
+    "Compiler Construction (ENG)":                      "Compiler Design",
+    "Human-Computer Interaction (ENG)":                 "Human-Computer Interaction",
+  },
+  "Civil Engineering": {
+    "Academic Techniques (ENG)":                        "Academic Writing",
+    "Basics of Physics I (including Lab) (ENG)":        "Physics I",
+    "Basics of Physics II (ENG)":                       "Physics II",
+    "Calculus I (ENG)":                                 "Mathematics I",
+    "Calculus II (ENG)":                                "Mathematics II",
+    "Calculus III (ENG)":                               "Mathematics III",
+    "English Language Course C1-1 (ENG)":               "English Language I",
+    "English Language Course C1-2 (ENG)":               "English Language II",
+    "Introduction to Linear Algebra (ENG)":             "Linear Algebra",
+    "Introduction to Modern Thought I (ENG)":           "N/A",
+    "AWS Cloud Practitioner (ENG)":                     "N/A",
+    "Algorithms and Data Structures (ENG)":             "N/A",
+    "Computational and Statistical Methods (ENG)":      "Statistics for Engineers",
+    "Computer Organization (ENG)":                      "N/A",
+    "Computer and Data Networks (ENG)":                 "N/A",
+    "Cyberlaw and Ethics (ENG)":                        "N/A",
+    "Drones (ENG)":                                     "N/A",
+    "Elements of Computational Complexity (ENG)":       "N/A",
+    "Introduction to Cyber Security (ENG)":             "N/A",
+    "Introduction to Operating Systems (ENG)":          "N/A",
+    "Introduction to Programming (ENG)":                "N/A",
+    "Mathematical Foundation of Computing (ENG)":       "N/A",
+    "Object Oriented Programming (ENG)":                "N/A",
+    "Principles of Numerical Methods (ENG)":            "Numerical Methods for Engineers",
+    "Programming Languages (ENG)":                      "N/A",
+    "Software Engineering (ENG)":                       "N/A",
+    "Computer Graphics (ENG)":                          "Engineering Drawing and CAD",
+    "Mobile Application Development (ENG)":             "N/A",
+    "Compiler Construction (ENG)":                      "N/A",
+    "Human-Computer Interaction (ENG)":                 "N/A",
+  },
+  "Electrical and Electronics Engineering": {
+    "Academic Techniques (ENG)":                        "Academic Writing and Communication",
+    "Basics of Physics I (including Lab) (ENG)":        "Physics I (with Lab)",
+    "Basics of Physics II (ENG)":                       "Physics II",
+    "Calculus I (ENG)":                                 "Calculus I",
+    "Calculus II (ENG)":                                "Calculus II",
+    "Calculus III (ENG)":                               "Calculus III",
+    "English Language Course C1-1 (ENG)":               "English Language I",
+    "English Language Course C1-2 (ENG)":               "English Language II",
+    "Introduction to Linear Algebra (ENG)":             "Linear Algebra",
+    "Introduction to Modern Thought I (ENG)":           "N/A",
+    "AWS Cloud Practitioner (ENG)":                     "N/A",
+    "Algorithms and Data Structures (ENG)":             "Data Structures",
+    "Computational and Statistical Methods (ENG)":      "Probability Theory and Statistics",
+    "Computer Organization (ENG)":                      "Digital Systems and Computer Architecture",
+    "Computer and Data Networks (ENG)":                 "Telecommunication Networks",
+    "Cyberlaw and Ethics (ENG)":                        "N/A",
+    "Drones (ENG)":                                     "Unmanned Aerial Systems",
+    "Elements of Computational Complexity (ENG)":       "N/A",
+    "Introduction to Cyber Security (ENG)":             "N/A",
+    "Introduction to Operating Systems (ENG)":          "Operating Systems for Embedded Devices",
+    "Introduction to Programming (ENG)":                "Introduction to Programming",
+    "Mathematical Foundation of Computing (ENG)":       "Discrete Mathematics",
+    "Object Oriented Programming (ENG)":                "Programming for Engineers",
+    "Principles of Numerical Methods (ENG)":            "Numerical Methods",
+    "Programming Languages (ENG)":                      "N/A",
+    "Software Engineering (ENG)":                       "N/A",
+    "Computer Graphics (ENG)":                          "N/A",
+    "Mobile Application Development (ENG)":             "N/A",
+    "Compiler Construction (ENG)":                      "N/A",
+    "Human-Computer Interaction (ENG)":                 "N/A",
+  }
+};
+
+// ─── Render Course Table ──────────────────────────────────────────────────
+function renderCourseTable() {
+  const tbody = document.getElementById('course-tbody');
+  tbody.innerHTML = '';
+  myCourses.forEach((c, i) => {
+    const tr = document.createElement('tr');
+    const pill = c.passed
+      ? `<span class="pill pill-yes">Yes</span>`
+      : `<span class="pill pill-no">No</span>`;
+    tr.innerHTML = `
+      <td style="color:var(--muted);width:40px">${i + 1}</td>
+      <td>${c.name}</td>
+      <td>${pill}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ─── Run Transfer ─────────────────────────────────────────────────────────
+function runTransfer() {
+  const target = document.getElementById('program-select').value;
+  const map = equivalencies[target];
+  const passed = myCourses.filter(c => c.passed);
+
+  const tbody = document.getElementById('equiv-tbody');
+  tbody.innerHTML = '';
+
+  let matched = 0, na = 0;
+
+  passed.forEach((c, i) => {
+    const equiv = map[c.name] ?? "N/A";
+    if (equiv === "N/A") na++; else matched++;
+
+    const tr = document.createElement('tr');
+    const equivCell = equiv === "N/A"
+      ? `<span class="na">N/A — No equivalent found</span>`
+      : `<span class="equiv-match">✓ ${equiv}</span>`;
+    tr.innerHTML = `
+      <td style="color:var(--muted);width:40px">${i + 1}</td>
+      <td>${c.name}</td>
+      <td>${equivCell}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Stats
+  const statsRow = document.getElementById('stats-row');
+  statsRow.innerHTML = `
+    <div class="stat"><div class="stat-num">${passed.length}</div><div class="stat-label">Passed Courses</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--green)">${matched}</div><div class="stat-label">Equivalencies Found</div></div>
+    <div class="stat"><div class="stat-num" style="color:var(--red)">${na}</div><div class="stat-label">No Equivalent</div></div>
+    <div class="stat"><div class="stat-num">${Math.round(matched/passed.length*100)}%</div><div class="stat-label">Transfer Coverage</div></div>
+  `;
+
+  document.getElementById('result-title').textContent =
+    `Equivalency Table → ${target}`;
+
+  const section = document.getElementById('result-section');
+  section.style.display = 'block';
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+renderCourseTable();
+</script>
+</body>
+</html>
